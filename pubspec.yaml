@@ -1,0 +1,82 @@
+name: oliver_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  pdfx: ^2.5.0
+  youtube_player_flutter: ^9.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# Configuración para el icono de la app
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icono.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/imagenes/calendario_fiestas/
+    - assets/imagenes/calendario_fiestas_turnos/
+    - assets/imagenes/m5_laborables/
+    - assets/imagenes/m5_sabados/
+    - assets/imagenes/m5_domingos/
+    - assets/imagenes/l46_laborables/
+    - assets/imagenes/l46_laborablesvc/
+    - assets/imagenes/l46_sabados/
+    - assets/imagenes/l46_domingos/
+    - assets/imagenes/l52_laborables/
+    - assets/imagenes/l52_sabados/
+    - assets/imagenes/l52_domingos/
+    - assets/imagenes/lx70_laborables/
+    - assets/imagenes/lx70_sabados/
+    - assets/imagenes/lx70_domingos/
+    - assets/imagenes/l72_laborables/
+    - assets/imagenes/l72_sabados/
+    - assets/imagenes/l72_domingos/
+    - assets/imagenes/l74_laborables/
+    - assets/imagenes/l74_sabados/
+    - assets/imagenes/l74_domingos/
+    - assets/imagenes/l76_laborables/
+    - assets/imagenes/l76_sabados/
+    - assets/imagenes/l76_domingos/
+    - assets/imagenes/l77_laborables/
+    - assets/imagenes/l77_agosto/
+    - assets/imagenes/l78_laborables/
+    - assets/imagenes/l78_sabados/
+    - assets/imagenes/l78_domingos/
+    - assets/imagenes/m75_laborables/
+    - assets/imagenes/m75_sabados/
+    - assets/imagenes/m75_domingos/
+    - assets/imagenes/sb1_laborables/
+    - assets/imagenes/sb1_sabados/
+    - assets/imagenes/sb1_domingos/
+    - assets/imagenes/sb2_laborables/
+    - assets/imagenes/sb2_sabados/
+    - assets/imagenes/sb3_laborables/
+    - assets/imagenes/sb3_sabados/
+    - assets/imagenes/x43_laborables/
+    - assets/imagenes/x43_sabados/
+    - assets/imagenes/x79_laborables/
+    - assets/imagenes/x79_sabados/
+    - assets/imagenes/x79_domingos/
+    - assets/imagenes/cuadro_vacaciones/
+    - assets/pdfs/grupo_vacaciones.pdf
+    - assets/pdfs/grupo_fiestas.pdf
+    - assets/pdfs/festivos.pdf
+    - assets/pdfs/cuadro_turnos.pdf
+    - assets/pdfs/bkb.pdf
+    - assets/pdfs/tablasalarial_24_25.pdf
+    - assets/pdfs/informacion.pdf
+    - assets/icono.png

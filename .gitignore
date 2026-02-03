@@ -1,0 +1,19 @@
+# Ignorar carpetas pesadas de compilación (Android/iOS/Plugins)
+/build/app/
+/build/host/
+/build/kotlin/
+/build/flutter_inappwebview_android/
+/android/
+/ios/
+.dart_tool/
+.pub/
+.packages
+
+# PERMITIR expresamente la carpeta que necesita el iPhone
+!/build/
+!/build/web/
+
+# Archivos de sistema
+.DS_Store
+*.apk
+*.aab
