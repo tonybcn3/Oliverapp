@@ -85,7 +85,7 @@ class Informacion extends StatelessWidget {
                 icon: Icons.code,
                 title: "Tecnología",
                 content:
-                    "Aplicación desarrollada con Flutter para dispositivos Android.",
+                    "Aplicación desarrollada con Flutter para dispositivos Ios y Android.",
               ),
 
               _infoCard(
