@@ -1,31 +1,30 @@
 @echo off
-setlocal enabledelayedexpansion
-echo 🚀 INICIANDO DESPLIEGUE FORZADO v1.0.5 (MODO CONSOLA)...
+echo 🚀 DESPLIEGUE MANUAL FORZADO v1.0.5...
 
-:: 1. Forzar cierre de procesos de Dart/Flutter que puedan estar bloqueando
+:: 1. Limpieza
+echo 🧹 Limpiando procesos y carpetas...
 taskkill /F /IM dart.exe /T >nul 2>&1
-taskkill /F /IM flutter.exe /T >nul 2>&1
-
-:: 2. Ejecutar comandos de Flutter usando la ruta directa al ejecutable
-echo 🧹 Limpiando y obteniendo paquetes...
 call flutter.bat clean
 call flutter.bat pub get
 
-:: 3. Construir la web (usamos el motor HTML que es mas compatible para probar ahora)
-echo 🛠️ Generando nuevos archivos web...
+:: 2. Construcción (Usando el modo mas compatible)
+echo 🛠️ Generando archivos nuevos en build\web...
 call flutter.bat build web --release --web-renderer html --pwa-strategy=none
 
-:: 4. Copiar archivos manualmente para asegurar el index.html
-echo 📂 Moviendo archivos a la raiz...
+:: 3. COPIADO MANUAL (Aqui es donde fallaba)
+echo 📂 Copiando archivos de build\web a la raiz...
+:: Forzamos el copiado del index.html especificamente
 copy /y "build\web\index.html" "index.html"
-xcopy /s /e /y /i "build\web\*" "."
+:: Copiamos todo lo demas incluyendo carpetas
+xcopy "build\web\*" "." /s /e /y /h /i
 
-:: 5. Subir a GitHub
-echo 📤 Subiendo cambios a GitHub Master...
-git add .
-git commit -m "Actualizacion 1.0.5 corregida"
+:: 4. SUBIDA A GITHUB
+echo 📤 Subiendo todo a GitHub...
+git add --all
+git commit -m "VERSION 1.0.5"
 git push origin master
 
 echo.
-echo ✅ ¡PROCESO FINALIZADO SIN ERRORES!
+echo ✅ PROCESO FINALIZADO.
+echo Mira el mensaje de arriba: ^¿Ha dicho "X archivos copiados"^?
 pause
