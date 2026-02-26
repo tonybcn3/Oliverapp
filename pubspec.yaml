@@ -1,7 +1,7 @@
 name: oliver_app
-description: "A new Flutter project."
+description: "La aplicación de los Oliveros."
 publish_to: 'none'
-version: 1.0.0
+version: 1.0.5+1
 
 environment:
   sdk: ^3.10.0
@@ -72,11 +72,6 @@ flutter:
     - assets/imagenes/x79_sabados/
     - assets/imagenes/x79_domingos/
     - assets/imagenes/cuadro_vacaciones/
-    - assets/pdfs/grupo_vacaciones.pdf
-    - assets/pdfs/grupo_fiestas.pdf
-    - assets/pdfs/festivos.pdf
-    - assets/pdfs/cuadro_turnos.pdf
-    - assets/pdfs/bkb.pdf
-    - assets/pdfs/tablasalarial_24_25.pdf
-    - assets/pdfs/informacion.pdf
+    - assets/imagenes/documentacion/
+    - assets/pdfs/
     - assets/icono.png

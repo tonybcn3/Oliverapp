@@ -1,0 +1,2 @@
+C:/Users/admin/Desktop/pruebapp/build/.cxx/release/1v1k5t3r/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/admin/Desktop/pruebapp/build/.cxx/release/1v1k5t3r/armeabi-v7a/CMakeFiles/rebuild_cache.dir

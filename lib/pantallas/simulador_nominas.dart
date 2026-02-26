@@ -39,7 +39,39 @@ class SimuladorNominas extends StatelessWidget {
 
               const SizedBox(height: 50),
 
-              // 🟢 BOTÓN SÍ (arriba)
+              // 🔴 BOTÓN NO (arriba)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 28,
+                      horizontal: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "No, soy un conformista y me fío de lo que "
+                    "me ha pagado la empresa",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // 🟢 BOTÓN SÍ (abajo)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -64,38 +96,6 @@ class SimuladorNominas extends StatelessWidget {
                   child: const Text(
                     "Sí, quiero comprobar si los importes "
                     "de mi nómina son correctos",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 🔴 BOTÓN NO (abajo)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 28,
-                      horizontal: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    "No, soy un conformista y me fío de lo que "
-                    "me ha pagado la empresa",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,

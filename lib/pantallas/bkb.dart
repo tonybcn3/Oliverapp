@@ -1,36 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:pdfx/pdfx.dart';
 import '../widgets/appbar_personalizado.dart';
 
 class Bkb extends StatefulWidget {
   const Bkb({super.key});
 
   @override
-  State<Bkb> createState() => _BkbPdfState();
+  State<Bkb> createState() => _BkbState();
 }
 
-class _BkbPdfState extends State<Bkb> {
-  late final PdfControllerPinch controller;
+class _BkbState extends State<Bkb> {
+  final _imageProvider = const AssetImage(
+    'assets/imagenes/documentacion/bkb.png',
+  );
 
   @override
-  void initState() {
-    super.initState();
-    controller = PdfControllerPinch(
-      document: PdfDocument.openAsset('assets/pdfs/bkb.pdf'),
-    );
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
+  void didChangeDependencies() {
+    precacheImage(_imageProvider, context);
+    super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: const AppBarPersonalizado(titulo: "Código BKB Líneas"),
-      body: PdfViewPinch(controller: controller),
+      body: InteractiveViewer(
+        constrained: false,
+        minScale: 1.0,
+        maxScale: 5.0,
+        boundaryMargin: EdgeInsets.zero,
+        child: Image(
+          image: _imageProvider,
+          width: screenWidth,
+          fit: BoxFit.fitWidth,
+          filterQuality: FilterQuality.high,
+        ),
+      ),
     );
   }
 }

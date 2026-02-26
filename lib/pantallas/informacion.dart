@@ -50,7 +50,7 @@ class Informacion extends StatelessWidget {
                   ),
 
                   SizedBox(height: 4),
-                  Text("Versión 1.0.0", style: TextStyle(color: Colors.grey)),
+                  Text("Versión 1.0.5", style: TextStyle(color: Colors.grey)),
                 ],
               ),
 
