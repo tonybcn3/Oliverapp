@@ -7,7 +7,7 @@ call flutter.bat pub get
 
 :: 2. Construcción básica (Sin parámetros que den error)
 echo 🛠️ Generando archivos...
-call flutter.bat build web --base-href "/Oliverapp/"
+call flutter.bat build web --release --base-href "/Oliverapp/" --web-renderer canvaskit
 
 :: 3. Mover archivos (Asegurando que la carpeta existe)
 echo 📂 Moviendo archivos...
