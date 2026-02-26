@@ -1,2 +1,0 @@
-C:/Users/admin/Desktop/pruebapp/build/.cxx/debug/50721x3f/x86_64/CMakeFiles/edit_cache.dir
-C:/Users/admin/Desktop/pruebapp/build/.cxx/debug/50721x3f/x86_64/CMakeFiles/rebuild_cache.dir

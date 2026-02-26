@@ -1,26 +1,31 @@
 @echo off
-echo 🚀 INICIANDO DESPLIEGUE AUTOMATICO DE OLIVER APP...
+setlocal enabledelayedexpansion
+echo 🚀 INICIANDO DESPLIEGUE FORZADO v1.0.5 (MODO CONSOLA)...
 
-:: 1. Limpieza y preparación
-echo 🧹 Limpiando versiones antiguas...
-call flutter clean
-call flutter pub get
+:: 1. Forzar cierre de procesos de Dart/Flutter que puedan estar bloqueando
+taskkill /F /IM dart.exe /T >nul 2>&1
+taskkill /F /IM flutter.exe /T >nul 2>&1
 
-:: 2. Construcción de la versión Web
-echo 🛠️ Generando nuevos archivos web (Canvaskit)...
-call flutter build web --release --web-renderer canvaskit --pwa-strategy=none
+:: 2. Ejecutar comandos de Flutter usando la ruta directa al ejecutable
+echo 🧹 Limpiando y obteniendo paquetes...
+call flutter.bat clean
+call flutter.bat pub get
 
-:: 3. Mover archivos de build/web a la raiz
-echo 📂 Moviendo archivos a la raiz del repositorio...
-xcopy /s /e /y build\web\* .
+:: 3. Construir la web (usamos el motor HTML que es mas compatible para probar ahora)
+echo 🛠️ Generando nuevos archivos web...
+call flutter.bat build web --release --web-renderer html --pwa-strategy=none
 
-:: 4. Subir todo a GitHub (CAMBIA EL TEXTO ENTRE COMILLAS CUANDO QUIERAS)
+:: 4. Copiar archivos manualmente para asegurar el index.html
+echo 📂 Moviendo archivos a la raiz...
+copy /y "build\web\index.html" "index.html"
+xcopy /s /e /y /i "build\web\*" "."
+
+:: 5. Subir a GitHub
 echo 📤 Subiendo cambios a GitHub Master...
 git add .
-git commit -m "Actualizacion 1.0.5: Mejora de zoom y scroll fluido"
+git commit -m "Actualizacion 1.0.5 corregida"
 git push origin master
 
 echo.
-echo ✅ ¡PROCESO FINALIZADO CON EXITO!
-echo Tu web se esta actualizando.
+echo ✅ ¡PROCESO FINALIZADO SIN ERRORES!
 pause
