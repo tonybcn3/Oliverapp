@@ -71185,7 +71185,7 @@ A.my.prototype={
 ae(){return new A.KD()}}
 A.KD.prototype={
 K(a){var s=null,r=A.bP(a,s,t.w).w
-return A.dY(A.kg(s,new A.hp(A.dg(s,s,B.q,B.a0,s,s,s,4,s,s,s,s,s),B.by,s),!0,s,s,B.PI),s,A.vH(B.R,A.Fk("assets/imagenes/documentacion/cuadro_turnos_03_26.png",3000,new A.aaA(),B.d9,B.fZ,new A.aaB(),s,r.a.a),!1,5,1,!0),s,s)}}
+return A.dY(A.kg(s,new A.hp(A.dg(s,s,B.q,B.a0,s,s,s,4,s,s,s,s,s),B.by,s),!0,s,s,B.PI),s,A.vH(B.R,A.Fk("assets/imagenes/documentacion/cuadro_turnos_03_26.png",4500,new A.aaA(),B.d9,B.fZ,new A.aaB(),s,r.a.a),!1,5,1,!0),s,s)}}
 A.aaA.prototype={
 $3(a,b,c){return B.zr},
 $S:499}
