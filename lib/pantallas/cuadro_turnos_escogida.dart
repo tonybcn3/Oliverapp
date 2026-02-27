@@ -41,7 +41,7 @@ class _CuadroTurnosEscogidaState extends State<CuadroTurnosEscogida> {
           fit: BoxFit.fitWidth,
           // CLAVE: Reducimos la altura en memoria a 3000px (aprox) para que el navegador la acepte
           // pero al estar en un InteractiveViewer, podrás seguir haciendo zoom.
-          cacheHeight: 4500,
+          cacheHeight: 4000,
           filterQuality: FilterQuality.high,
           // Mostramos un indicador de carga por si tarda un poco en procesar
           errorBuilder: (context, error, stackTrace) =>
