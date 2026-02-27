@@ -8,20 +8,11 @@ class CuadroTurnosEscogida extends StatefulWidget {
 }
 
 class _CuadroTurnosEscogidaState extends State<CuadroTurnosEscogida> {
-  final _imageProvider = const AssetImage(
-    'assets/imagenes/documentacion/cuadro_turnos_03_26.png',
-  );
-
-  @override
-  void didChangeDependencies() {
-    // CORRECCIÓN: Se llama a la función global precacheImage directamente
-    precacheImage(_imageProvider, context);
-    super.didChangeDependencies();
-  }
+  // Eliminamos el precacheImage porque con imágenes tan gigantes
+  // a veces causa el error de pantalla negra antes de tiempo.
 
   @override
   Widget build(BuildContext context) {
-    // Obtenemos el ancho para que la imagen no se vea pequeña al inicio
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -40,18 +31,30 @@ class _CuadroTurnosEscogidaState extends State<CuadroTurnosEscogida> {
         ),
       ),
       body: InteractiveViewer(
-        // Con 'constrained: false' permitimos que la imagen sea más larga que la pantalla
-        // y el InteractiveViewer se encarga de hacer el scroll vertical automáticamente.
         constrained: false,
         minScale: 1.0,
         maxScale: 5.0,
-        // Eliminamos márgenes para que encaje perfecta en los bordes
         boundaryMargin: EdgeInsets.zero,
-        child: Image(
-          image: _imageProvider,
-          width: screenWidth, // Forzamos el ancho de la pantalla
+        child: Image.asset(
+          'assets/imagenes/documentacion/cuadro_turnos_03_26.png',
+          width: screenWidth,
           fit: BoxFit.fitWidth,
+          // CLAVE: Reducimos la altura en memoria a 3000px (aprox) para que el navegador la acepte
+          // pero al estar en un InteractiveViewer, podrás seguir haciendo zoom.
+          cacheHeight: 3000,
           filterQuality: FilterQuality.high,
+          // Mostramos un indicador de carga por si tarda un poco en procesar
+          errorBuilder: (context, error, stackTrace) =>
+              const Center(child: Text("Error al cargar imagen")),
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded) return child;
+            return AnimatedOpacity(
+              opacity: frame == null ? 0 : 1,
+              duration: const Duration(seconds: 1),
+              curve: Curves.easeOut,
+              child: child,
+            );
+          },
         ),
       ),
     );
