@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import '../widgets/fondo_degradado.dart';
 import '../widgets/colored_line.dart';
 import 'nomina_detalle.dart';
+import '../data/turnos_data.dart';
 
 class ResumenNomina extends StatelessWidget {
   final Map<int, String> diasSeleccionados;
   final double antiguedad;
   final double irpf;
   final int festivosTrabajados; // <-- Nuevo dato
+  final String mes;
 
   const ResumenNomina({
     super.key,
     required this.diasSeleccionados,
+    required this.mes,
     this.antiguedad = 0,
     this.irpf = 0,
-    this.festivosTrabajados = 0, // valor por defecto
+    this.festivosTrabajados = 0,
   });
 
   @override
@@ -70,7 +73,7 @@ class ResumenNomina extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                turno,
+                                obtenerTurno(turno)?.codigoVisible ?? turno,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -140,6 +143,7 @@ class ResumenNomina extends StatelessWidget {
                           irpf: irpf,
                           festivosTrabajados:
                               festivosTrabajados, // <-- Pasamos el dato
+                          mes: mes,
                         ),
                       ),
                     );

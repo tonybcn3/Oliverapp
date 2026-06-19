@@ -50,7 +50,7 @@ class Informacion extends StatelessWidget {
                   ),
 
                   SizedBox(height: 4),
-                  Text("Versión 1.0.5", style: TextStyle(color: Colors.grey)),
+                  Text("Versión 2.0", style: TextStyle(color: Colors.grey)),
                 ],
               ),
 
@@ -61,7 +61,7 @@ class Informacion extends StatelessWidget {
                 title: "Descripción",
                 content:
                     "Aplicación diseñada para facilitar la información sobre turnos, "
-                    "vacaciones, fiestas, documentación y recursos de forma clara y sencilla.",
+                    "vacaciones, fiestas, documentación y nóminas de manera sencilla.",
               ),
 
               _infoCard(
@@ -76,7 +76,7 @@ class Informacion extends StatelessWidget {
                 content:
                     "La información y documentación mostrada en la aplicación "
                     "ha sido recopilada y aportada por:\n\n"
-                    "• Comité C.C.O.O Ute\n"
+                    "• Comité C.C.O.O UTE Sant Boi\n"
                     "• Juan Manuel Cutillas\n"
                     "• Toni Aguayo",
               ),
@@ -85,7 +85,7 @@ class Informacion extends StatelessWidget {
                 icon: Icons.code,
                 title: "Tecnología",
                 content:
-                    "Aplicación desarrollada con Flutter para dispositivos Ios y Android.",
+                    "Aplicación desarrollada con Flutter para dispositivos iOS y Android.",
               ),
 
               _infoCard(

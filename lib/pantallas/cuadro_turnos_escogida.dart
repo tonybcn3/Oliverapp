@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // ← AÑADIR ESTA
 
 class CuadroTurnosEscogida extends StatefulWidget {
   const CuadroTurnosEscogida({super.key});
@@ -8,9 +9,6 @@ class CuadroTurnosEscogida extends StatefulWidget {
 }
 
 class _CuadroTurnosEscogidaState extends State<CuadroTurnosEscogida> {
-  // Eliminamos el precacheImage porque con imágenes tan gigantes
-  // a veces causa el error de pantalla negra antes de tiempo.
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -39,11 +37,13 @@ class _CuadroTurnosEscogidaState extends State<CuadroTurnosEscogida> {
           'assets/imagenes/documentacion/cuadro_turnos_03_26.png',
           width: screenWidth,
           fit: BoxFit.fitWidth,
-          // CLAVE: Reducimos la altura en memoria a 3000px (aprox) para que el navegador la acepte
-          // pero al estar en un InteractiveViewer, podrás seguir haciendo zoom.
-          cacheHeight: 4000,
+
+          // 🔑 Solo limitamos en iOS
+          cacheHeight: (kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
+              ? 4000
+              : null,
+
           filterQuality: FilterQuality.high,
-          // Mostramos un indicador de carga por si tarda un poco en procesar
           errorBuilder: (context, error, stackTrace) =>
               const Center(child: Text("Error al cargar imagen")),
           frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {

@@ -10,7 +10,7 @@ class Bkb extends StatefulWidget {
 
 class _BkbState extends State<Bkb> {
   final _imageProvider = const AssetImage(
-    'assets/imagenes/documentacion/bkb.png',
+    'assets/imagenes/documentacion/bkb_03_26.png',
   );
 
   @override

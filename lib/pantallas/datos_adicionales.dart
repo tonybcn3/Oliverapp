@@ -5,8 +5,13 @@ import 'resumen_nomina.dart';
 
 class DatosAdicionales extends StatefulWidget {
   final Map<int, String> diasSeleccionados;
+  final String mes;
 
-  const DatosAdicionales({super.key, required this.diasSeleccionados});
+  const DatosAdicionales({
+    super.key,
+    required this.diasSeleccionados,
+    required this.mes,
+  });
 
   @override
   State<DatosAdicionales> createState() => _DatosAdicionalesState();
@@ -44,22 +49,38 @@ class _DatosAdicionalesState extends State<DatosAdicionales> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Antigüedad
-              const Text(
-                "Seleccione la antigüedad (años):",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Seleccione la antigüedad (años):",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    "${antiguedad.toInt()} años",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 0, 0, 0),
+                    ),
+                  ),
+                ],
               ),
+
               Slider(
                 value: antiguedad,
                 min: 0,
-                max: 40,
-                divisions: 40,
-                label: "${antiguedad.toInt()} años",
+                max: 35,
+                divisions: 35,
+                activeColor: const Color.fromARGB(255, 233, 120, 28),
+                inactiveColor: const Color.fromARGB(80, 233, 120, 28),
                 onChanged: (value) {
                   setState(() {
                     antiguedad = value;
                   });
                 },
               ),
+
               const SizedBox(height: 30),
 
               // IRPF
@@ -129,6 +150,7 @@ class _DatosAdicionalesState extends State<DatosAdicionales> {
                           irpf: irpf,
                           festivosTrabajados:
                               festivosTrabajados, // <-- Pasamos el dato
+                          mes: widget.mes,
                         ),
                       ),
                     );

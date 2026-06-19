@@ -3,21 +3,30 @@ import '../widgets/fondo_degradado.dart';
 import '../widgets/colored_line.dart';
 import '../data/turnos_data.dart';
 import '../data/conceptos_nomina.dart';
+import '../models/nomina_model.dart';
+import '../services/historial_service.dart';
 
-class NominaDetalle extends StatelessWidget {
+class NominaDetalle extends StatefulWidget {
   final Map<int, String> diasSeleccionados;
   final double antiguedad;
   final double irpf;
-  final int festivosTrabajados; // <-- Nuevo dato
+  final int festivosTrabajados;
+  final String mes;
 
   const NominaDetalle({
     super.key,
     required this.diasSeleccionados,
     required this.antiguedad,
     required this.irpf,
-    this.festivosTrabajados = 0, // valor por defecto
+    required this.mes,
+    this.festivosTrabajados = 0,
   });
 
+  @override
+  State<NominaDetalle> createState() => _NominaDetalleState();
+}
+
+class _NominaDetalleState extends State<NominaDetalle> {
   @override
   Widget build(BuildContext context) {
     final unidades = _calcularUnidades();
@@ -28,9 +37,9 @@ class NominaDetalle extends StatelessWidget {
     final List<Widget> filasDevengos = [];
     final List<Widget> filasDeducciones = [];
 
-    /// =============================
-    /// SALARIO BASE
-    /// =============================
+    // =============================
+    // SALARIO BASE
+    // =============================
     filasDevengos.add(
       _filaDevengo(
         concepto: "Salario Base",
@@ -40,26 +49,26 @@ class NominaDetalle extends StatelessWidget {
       ),
     );
 
-    /// =============================
-    /// ANTIGÜEDAD
-    /// =============================
-    final importeAntiguedad = _calcularImporteAntiguedad(antiguedad);
+    // =============================
+    // ANTIGÜEDAD
+    // =============================
+    final importeAntiguedad = _calcularImporteAntiguedad(widget.antiguedad);
     if (importeAntiguedad > 0) {
       totalDevengos += importeAntiguedad;
 
       filasDevengos.add(
         _filaDevengo(
           concepto: "Antigüedad",
-          unidad: "", // columna UNID. vacía
+          unidad: "",
           precio: 0,
           total: importeAntiguedad,
         ),
       );
     }
 
-    /// =============================
-    /// PLUSES / TURNOS
-    /// =============================
+    // =============================
+    // PLUSES / TURNOS
+    // =============================
     for (final entry in unidades.entries) {
       final concepto = conceptosNomina[entry.key];
       if (concepto == null || concepto.esDeduccion) continue;
@@ -77,40 +86,37 @@ class NominaDetalle extends StatelessWidget {
       );
     }
 
-    /// =============================
-    /// FESTIVOS OFICIALES TRABAJADOS
-    /// =============================
-    if (festivosTrabajados > 0) {
+    // =============================
+    // FESTIVOS
+    // =============================
+    if (widget.festivosTrabajados > 0) {
       final precioFestivo = conceptosNomina["FESTIVOS"]?.precio ?? 0;
-      final totalFestivo = festivosTrabajados * precioFestivo;
+      final totalFestivo = widget.festivosTrabajados * precioFestivo;
       totalDevengos += totalFestivo;
 
       filasDevengos.add(
         _filaDevengo(
           concepto: "Festivos Oficiales Trabajados",
-          unidad: festivosTrabajados.toString(),
+          unidad: widget.festivosTrabajados.toString(),
           precio: precioFestivo,
           total: totalFestivo,
         ),
       );
     }
 
-    /// =============================
-    /// TOTAL BRUTO
-    /// =============================
     final totalBruto = totalDevengos;
 
-    /// =============================
-    /// IRPF (BASE IRPF)
-    /// =============================
-    if (irpf > 0) {
-      final baseIrpf = totalBruto;
-      final importeIrpf = baseIrpf * irpf / 100;
-      totalDeducciones += importeIrpf;
+    // =====================================================
+    // 🔵 IRPF (RESTAURADO CON DESGLOSE)
+    // =====================================================
+    double totalIrpf = 0;
+
+    if (widget.irpf > 0) {
+      totalIrpf = totalBruto * widget.irpf / 100;
+      totalDeducciones += totalIrpf;
 
       filasDeducciones.add(const SizedBox(height: 12));
 
-      // Título centrado con líneas
       filasDeducciones.add(_tituloDeduccion("RETENCIÓN I.R.P.F."));
 
       filasDeducciones.add(
@@ -124,25 +130,38 @@ class NominaDetalle extends StatelessWidget {
 
       filasDeducciones.add(
         _filaTriple(
-          col1: baseIrpf.toStringAsFixed(2),
-          col2: irpf.toStringAsFixed(2),
-          col3: "-${importeIrpf.toStringAsFixed(2)}",
+          col1: totalBruto.toStringAsFixed(2),
+          col2: widget.irpf.toStringAsFixed(2),
+          col3: "-${totalIrpf.toStringAsFixed(2)}",
         ),
       );
     }
 
-    /// =============================
-    /// SEGURIDAD SOCIAL
-    /// =============================
-    final remuneracionTotal = totalBruto;
-    final diasMes = diasSeleccionados.length;
-    final basePagasExtra = salarioBaseTotal + importeAntiguedad;
-    final prorrataPagasExtra = (basePagasExtra * 3 / 365) * diasMes;
-    final totalSeguridadSocial = remuneracionTotal + prorrataPagasExtra;
+    // =====================================================
+    // 🟠 SEGURIDAD SOCIAL (DESGLOSE COMPLETO RESTAURADO)
+    // =====================================================
+    final diasMes = widget.diasSeleccionados.length;
+
+    final prorrataPagasExtra =
+        ((salarioBaseTotal + importeAntiguedad) / 365) * diasMes * 3;
+
+    final baseSS = totalBruto + prorrataPagasExtra;
+
+    const double pctContingencias = 4.70;
+    const double pctMei = 0.15;
+    const double pctDesempleo = 1.55;
+    const double pctFormacion = 0.10;
+
+    final contingencias = baseSS * pctContingencias / 100;
+    final mei = baseSS * pctMei / 100;
+    final desempleo = baseSS * pctDesempleo / 100;
+    final formacion = baseSS * pctFormacion / 100;
+
+    final totalSS = contingencias + mei + desempleo + formacion;
+    totalDeducciones += totalSS;
 
     filasDeducciones.add(const SizedBox(height: 16));
 
-    // Título centrado con líneas
     filasDeducciones.add(_tituloDeduccion("RETENCIÓN SEGURIDAD SOCIAL"));
 
     filasDeducciones.add(
@@ -156,38 +175,16 @@ class NominaDetalle extends StatelessWidget {
 
     filasDeducciones.add(
       _filaTriple(
-        col1: remuneracionTotal.toStringAsFixed(2),
+        col1: totalBruto.toStringAsFixed(2),
         col2: prorrataPagasExtra.toStringAsFixed(2),
-        col3: totalSeguridadSocial.toStringAsFixed(2),
+        col3: baseSS.toStringAsFixed(2),
       ),
     );
 
-    /// =============================
-    /// DEDUCCIONES SEGURIDAD SOCIAL
-    /// =============================
-    const double pctContingencias = 4.70;
-    const double pctMei = 0.13;
-    const double pctDesempleo = 1.55;
-    const double pctFormacion = 0.10;
-
-    final double baseSeguridadSocial = totalSeguridadSocial;
-
-    final double contingencias = baseSeguridadSocial * pctContingencias / 100;
-    final double mei = baseSeguridadSocial * pctMei / 100;
-    final double desempleo = baseSeguridadSocial * pctDesempleo / 100;
-    final double formacion = baseSeguridadSocial * pctFormacion / 100;
-
-    final double totalSeguridadSocialTrabajador =
-        contingencias + mei + desempleo + formacion;
-
-    totalDeducciones += totalSeguridadSocialTrabajador;
-
-    filasDeducciones.add(const SizedBox(height: 16));
-
     filasDeducciones.add(
       _filaTriple(
-        col1: "Contingencias Comunes",
-        col2: "${pctContingencias.toStringAsFixed(2)} %",
+        col1: "Contingencias",
+        col2: "${pctContingencias.toStringAsFixed(2)}%",
         col3: "-${contingencias.toStringAsFixed(2)}",
       ),
     );
@@ -195,7 +192,7 @@ class NominaDetalle extends StatelessWidget {
     filasDeducciones.add(
       _filaTriple(
         col1: "MEI",
-        col2: "${pctMei.toStringAsFixed(2)} %",
+        col2: "${pctMei.toStringAsFixed(2)}%",
         col3: "-${mei.toStringAsFixed(2)}",
       ),
     );
@@ -203,31 +200,31 @@ class NominaDetalle extends StatelessWidget {
     filasDeducciones.add(
       _filaTriple(
         col1: "Desempleo",
-        col2: "${pctDesempleo.toStringAsFixed(2)} %",
+        col2: "${pctDesempleo.toStringAsFixed(2)}%",
         col3: "-${desempleo.toStringAsFixed(2)}",
       ),
     );
 
     filasDeducciones.add(
       _filaTriple(
-        col1: "Formación Profesional",
-        col2: "${pctFormacion.toStringAsFixed(2)} %",
+        col1: "Formación",
+        col2: "${pctFormacion.toStringAsFixed(2)}%",
         col3: "-${formacion.toStringAsFixed(2)}",
       ),
     );
 
     filasDeducciones.add(
       _filaTriple(
-        col1: "TOTAL",
+        col1: "TOTAL SS",
         col2: "",
-        col3: "-${totalSeguridadSocialTrabajador.toStringAsFixed(2)}",
+        col3: "-${totalSS.toStringAsFixed(2)}",
         esTitulo: true,
       ),
     );
 
-    /// =============================
-    /// ANTICIPO
-    /// =============================
+    // =============================
+    // ANTICIPO
+    // =============================
     final anticipo = conceptosNomina["ANTICIPO"]?.precio ?? 0;
     if (anticipo > 0) {
       totalDeducciones += anticipo;
@@ -237,15 +234,14 @@ class NominaDetalle extends StatelessWidget {
       );
     }
 
-    /// =============================
-    /// UI
-    /// =============================
+    final neto = totalBruto - totalDeducciones;
+
+    // =============================
+    // UI
+    // =============================
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Detalle de la nómina",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
+        title: Text("Detalle nómina - ${widget.mes}"),
         centerTitle: true,
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(4),
@@ -253,54 +249,88 @@ class NominaDetalle extends StatelessWidget {
         ),
       ),
       body: FondoDegradado(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            _cabeceraDevengos(),
-            ...filasDevengos,
-            const Divider(thickness: 2),
-            _filaTotal("TOTAL BRUTO", totalBruto),
-            const SizedBox(height: 24),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _cabeceraDevengos(),
+                  ...filasDevengos,
+                  const Divider(thickness: 2),
+                  _filaTotal("TOTAL BRUTO", totalBruto),
+                  const SizedBox(height: 24),
+                  ...filasDeducciones,
+                  const Divider(thickness: 2),
+                  _filaTotal("TOTAL DEDUCCIONES", totalDeducciones),
+                  _filaTotal("NETO A PERCIBIR", neto),
+                ],
+              ),
+            ),
 
-            ...filasDeducciones,
-            const Divider(thickness: 2),
-            _filaTotal("TOTAL DEDUCCIONES", totalDeducciones),
-            _filaTotal("NETO A PERCIBIR", totalBruto - totalDeducciones),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        final nomina = Nomina(
+                          mes: widget.mes,
+                          fecha: DateTime.now(),
+                          bruto: totalBruto,
+                          deducciones: totalDeducciones,
+                          neto: neto,
+                        );
+
+                        await HistorialService.guardarNomina(nomina);
+
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Nómina guardada en historial"),
+                          ),
+                        );
+                      },
+                      child: const Text("GUARDAR EN HISTORIAL"),
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  Expanded(
+                    flex: 1,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade800,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        Navigator.of(
+                          context,
+                        ).popUntil((route) => route.isFirst);
+                      },
+                      child: const Text("SALIR"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// =============================
-  /// TÍTULO DEDUCCIÓN CENTRADO CON LÍNEAS
-  /// =============================
-  Widget _tituloDeduccion(String texto) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        children: [
-          const Expanded(child: Divider(thickness: 1)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              texto,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.8,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const Expanded(child: Divider(thickness: 1)),
-        ],
-      ),
-    );
-  }
-
-  /// =============================
-  /// ANTIGÜEDAD POR TRAMOS
-  /// =============================
+  // =========================================================
+  // ANTIGÜEDAD
+  // =========================================================
   double _calcularImporteAntiguedad(double anos) {
     if (anos < 2) return 0;
     if (anos <= 3) return 32.61;
@@ -312,9 +342,9 @@ class NominaDetalle extends StatelessWidget {
     return 391.33;
   }
 
-  /// =============================
-  /// CÁLCULO DE UNIDADES
-  /// =============================
+  // =========================================================
+  // UNIDADES
+  // =========================================================
   Map<String, double> _calcularUnidades() {
     final Map<String, double> resultado = {};
 
@@ -323,8 +353,12 @@ class NominaDetalle extends StatelessWidget {
       resultado[clave] = (resultado[clave] ?? 0) + valor;
     }
 
-    for (final codigo in diasSeleccionados.values) {
-      final turno = obtenerTurno(codigo);
+    for (final codigo in widget.diasSeleccionados.values) {
+      final turno =
+          turnosLaborables[codigo] ??
+          turnosSabados[codigo] ??
+          turnosDomingos[codigo];
+
       if (turno == null) continue;
 
       sumar("QMON", turno.qMon);
@@ -348,50 +382,61 @@ class NominaDetalle extends StatelessWidget {
       }
     }
 
+    if (resultado.containsKey("PDOM")) {
+      resultado["PDOM"] = (resultado["PDOM"]! - widget.festivosTrabajados)
+          .clamp(0, double.infinity);
+    }
+
     return resultado;
   }
 
-  /// =============================
-  /// UI COMPONENTES
-  /// =============================
+  // =============================
+  // WIDGETS UI
+  // =============================
+  Widget _tituloDeduccion(String texto) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    child: Row(
+      children: [
+        const Expanded(child: Divider()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            texto,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const Expanded(child: Divider()),
+      ],
+    ),
+  );
+
   Widget _filaTriple({
     required String col1,
     required String col2,
     required String col3,
     bool esTitulo = false,
   }) {
-    final estilo = esTitulo
+    final style = esTitulo
         ? const TextStyle(fontWeight: FontWeight.bold)
-        : const TextStyle();
+        : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(col1, style: estilo, textAlign: TextAlign.center),
-          ),
-          Expanded(
-            child: Text(col2, style: estilo, textAlign: TextAlign.center),
-          ),
-          Expanded(
-            child: Text(col3, style: estilo, textAlign: TextAlign.center),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(child: Text(col1, style: style)),
+        Expanded(
+          child: Text(col2, style: style, textAlign: TextAlign.center),
+        ),
+        Expanded(
+          child: Text(col3, style: style, textAlign: TextAlign.right),
+        ),
+      ],
     );
   }
 
   Widget _cabeceraDevengos() {
-    return Row(
-      children: const [
-        Expanded(
-          flex: 3,
-          child: Text(
-            "CONCEPTO",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
+    return const Row(
+      children: [
+        Expanded(flex: 3, child: Text("CONCEPTO")),
         Expanded(child: Text("UNID.", textAlign: TextAlign.center)),
         Expanded(child: Text("PRECIO", textAlign: TextAlign.center)),
         Expanded(child: Text("TOTAL", textAlign: TextAlign.center)),
@@ -405,23 +450,13 @@ class NominaDetalle extends StatelessWidget {
     required double precio,
     required double total,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(flex: 3, child: Text(concepto)),
-          Expanded(child: Text(unidad, textAlign: TextAlign.center)),
-          Expanded(
-            child: Text(
-              precio == 0 ? "" : precio.toStringAsFixed(2),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            child: Text(total.toStringAsFixed(2), textAlign: TextAlign.center),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(flex: 3, child: Text(concepto)),
+        Expanded(child: Text(unidad, textAlign: TextAlign.center)),
+        Expanded(child: Text(precio == 0 ? "" : precio.toStringAsFixed(2))),
+        Expanded(child: Text(total.toStringAsFixed(2))),
+      ],
     );
   }
 
@@ -430,44 +465,38 @@ class NominaDetalle extends StatelessWidget {
     required String detalle,
     double? importe,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(flex: 3, child: Text(concepto)),
-          Expanded(child: Text(detalle, textAlign: TextAlign.center)),
-          Expanded(
-            child: Text(
-              importe == null ? "" : "-${importe.toStringAsFixed(2)}",
-              textAlign: TextAlign.right,
-            ),
+    return Row(
+      children: [
+        Expanded(flex: 3, child: Text(concepto)),
+        Expanded(child: Text(detalle)),
+        Expanded(
+          child: Text(
+            importe == null ? "" : "-${importe.toStringAsFixed(2)}",
+            textAlign: TextAlign.right,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _filaTotal(String texto, double importe) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              texto,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Text(
+            texto,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          Expanded(
-            child: Text(
-              importe.toStringAsFixed(2),
-              textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+        ),
+        Expanded(
+          child: Text(
+            importe.toStringAsFixed(2),
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

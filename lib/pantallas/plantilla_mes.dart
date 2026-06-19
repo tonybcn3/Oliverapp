@@ -1,13 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../widgets/fondo_degradado.dart';
 import 'datos_adicionales.dart';
-import '../data/turnos_data.dart'; // <-- Importamos los turnos en formato Map
+import '../data/turnos_data.dart';
 
 class PlantillaMes extends StatefulWidget {
   final String mes;
   final int diasMes;
 
-  const PlantillaMes({super.key, required this.mes, required this.diasMes});
+  final Map<int, String>? datosGuardados;
+
+  const PlantillaMes({
+    super.key,
+    required this.mes,
+    required this.diasMes,
+    this.datosGuardados,
+  });
 
   @override
   State<PlantillaMes> createState() => _PlantillaMesState();
@@ -16,7 +27,9 @@ class PlantillaMes extends StatefulWidget {
 class _PlantillaMesState extends State<PlantillaMes> {
   Map<int, String> diasSeleccionados = {};
 
-  /// 🔹 Convertimos los Map a List SOLO para la UI
+  // 🔹 DÍAS MARCADOS PARA MULTISELECCIÓN
+  Set<int> diasMarcados = {};
+
   late final List<Turno> turnosLaborablesList;
   late final List<Turno> turnosSabadosList;
   late final List<Turno> turnosDomingosList;
@@ -24,6 +37,10 @@ class _PlantillaMesState extends State<PlantillaMes> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.datosGuardados != null) {
+      diasSeleccionados = Map.from(widget.datosGuardados!);
+    }
 
     turnosLaborablesList = turnosLaborables.values.toList()
       ..sort((a, b) => a.codigo.compareTo(b.codigo));
@@ -33,6 +50,67 @@ class _PlantillaMesState extends State<PlantillaMes> {
 
     turnosDomingosList = turnosDomingos.values.toList()
       ..sort((a, b) => a.codigo.compareTo(b.codigo));
+  }
+
+  // =============================
+  // 🔹 AUTOGUARDADO
+  // =============================
+  Future<void> _guardarAutomaticamente() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final diasConvertidos = diasSeleccionados.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
+
+    final datos = {'diasSeleccionados': diasConvertidos};
+
+    await prefs.setString('nomina_${widget.mes}', jsonEncode(datos));
+  }
+
+  // =============================
+  // 🔹 ASIGNAR TURNO
+  // =============================
+  Future<void> _asignarTurno(int dia) async {
+    String? resultado = await _seleccionarTipoTurno();
+
+    if (resultado == null) return;
+
+    String valorFinal = resultado;
+
+    if (resultado != "FIESTA") {
+      List<Turno> turnos = [];
+
+      if (resultado == "LABORABLES") {
+        turnos = turnosLaborablesList;
+      } else if (resultado == "SABADOS") {
+        turnos = turnosSabadosList;
+      } else if (resultado == "DOMINGOS") {
+        turnos = turnosDomingosList;
+      }
+
+      String? turnoSeleccionado = await _seleccionarTurno(turnos);
+
+      if (turnoSeleccionado == null) return;
+
+      valorFinal = turnoSeleccionado;
+    }
+
+    setState(() {
+      // 🔹 SI HAY MULTISELECCIÓN
+      if (diasMarcados.isNotEmpty) {
+        for (final d in diasMarcados) {
+          diasSeleccionados[d] = valorFinal;
+        }
+
+        diasMarcados.clear();
+      }
+      // 🔹 SI ES SOLO UN DÍA
+      else {
+        diasSeleccionados[dia] = valorFinal;
+      }
+    });
+
+    _guardarAutomaticamente();
   }
 
   @override
@@ -54,8 +132,10 @@ class _PlantillaMesState extends State<PlantillaMes> {
           padding: const EdgeInsets.all(16),
           itemCount: widget.diasMes + 1,
           itemBuilder: (context, index) {
+            // =============================
+            // 🔹 BOTÓN CONTINUAR
+            // =============================
             if (index == widget.diasMes) {
-              // 🔹 BOTÓN CONTINUAR
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: SizedBox(
@@ -74,6 +154,7 @@ class _PlantillaMesState extends State<PlantillaMes> {
                         MaterialPageRoute(
                           builder: (_) => DatosAdicionales(
                             diasSeleccionados: diasSeleccionados,
+                            mes: widget.mes,
                           ),
                         ),
                       );
@@ -96,69 +177,71 @@ class _PlantillaMesState extends State<PlantillaMes> {
 
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 40,
-                    child: Text(
-                      "$dia",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              child: GestureDetector(
+                onLongPress: () {
+                  setState(() {
+                    if (diasMarcados.contains(dia)) {
+                      diasMarcados.remove(dia);
+                    } else {
+                      diasMarcados.add(dia);
+                    }
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: diasMarcados.contains(dia)
+                        ? Colors.orange.withOpacity(0.25)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () async {
-                        String? resultado = await _seleccionarTipoTurno();
-                        if (resultado == null) return;
-
-                        if (resultado == "FIESTA") {
-                          setState(() {
-                            diasSeleccionados[dia] = "FIESTA";
-                          });
-                        } else {
-                          List<Turno> turnos = [];
-
-                          if (resultado == "LABORABLES") {
-                            turnos = turnosLaborablesList;
-                          } else if (resultado == "SABADOS") {
-                            turnos = turnosSabadosList;
-                          } else if (resultado == "DOMINGOS") {
-                            turnos = turnosDomingosList;
-                          }
-
-                          String? turnoSeleccionado = await _seleccionarTurno(
-                            turnos,
-                          );
-
-                          if (turnoSeleccionado != null) {
-                            setState(() {
-                              diasSeleccionados[dia] = turnoSeleccionado;
-                            });
-                          }
-                        }
-                      },
-                      child: Text(
-                        valorDia.isEmpty ? "Selecciona turno" : valorDia,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 40,
+                        child: Text(
+                          "$dia",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: diasMarcados.contains(dia)
+                                ? Colors.deepOrange
+                                : Colors.orange,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+
+                          // 🔹 NUEVO
+                          onPressed: () => _asignarTurno(dia),
+
+                          child: Text(
+                            valorDia.isEmpty
+                                ? (diasMarcados.isNotEmpty
+                                      ? "Aplicar selección"
+                                      : "Selecciona turno")
+                                : obtenerTurno(valorDia)?.codigoVisible ??
+                                      valorDia,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             );
           },
@@ -168,7 +251,7 @@ class _PlantillaMesState extends State<PlantillaMes> {
   }
 
   /// =============================
-  /// DIÁLOGOS
+  /// 🔹 DIÁLOGO TIPO TURNO
   /// =============================
   Future<String?> _seleccionarTipoTurno() {
     return showDialog<String>(
@@ -200,6 +283,9 @@ class _PlantillaMesState extends State<PlantillaMes> {
     );
   }
 
+  /// =============================
+  /// 🔹 DIÁLOGO TURNOS
+  /// =============================
   Future<String?> _seleccionarTurno(List<Turno> turnos) {
     return showDialog<String>(
       context: context,
@@ -212,7 +298,7 @@ class _PlantillaMesState extends State<PlantillaMes> {
             itemCount: turnos.length,
             itemBuilder: (context, index) {
               return ListTile(
-                title: Text(turnos[index].codigo),
+                title: Text(turnos[index].codigoVisible),
                 onTap: () => Navigator.pop(context, turnos[index].codigo),
               );
             },
@@ -224,7 +310,7 @@ class _PlantillaMesState extends State<PlantillaMes> {
 }
 
 /// =============================
-/// LÍNEA DECORATIVA
+/// 🔹 LÍNEA DECORATIVA
 /// =============================
 class ColoredLine extends StatelessWidget {
   const ColoredLine({super.key});
