@@ -34,7 +34,7 @@ class _CuadroTurnosEscogidaState extends State<CuadroTurnosEscogida> {
         maxScale: 5.0,
         boundaryMargin: EdgeInsets.zero,
         child: Image.asset(
-          'assets/imagenes/documentacion/cuadro_turnos_03_26.png',
+          'assets/imagenes/documentacion/cuadro_turnos_10_26.png',
           width: screenWidth,
           fit: BoxFit.fitWidth,
 

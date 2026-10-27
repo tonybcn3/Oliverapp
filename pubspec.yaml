@@ -1,7 +1,7 @@
 name: oliver_app
 description: "La aplicación de los Oliveros."
 publish_to: 'none'
-version: 2.0.0+3
+version: 2.4.0+4
 
 environment:
   sdk: ^3.10.0
@@ -70,11 +70,13 @@ flutter:
     - assets/imagenes/sb3_sabados/
     - assets/imagenes/x43_laborables/
     - assets/imagenes/x43_sabados/
+    - assets/imagenes/x73_laborables/
     - assets/imagenes/x79_domingos/
     - assets/imagenes/x79_laborables/
     - assets/imagenes/x79_sabados/
     - assets/imagenes/calendario_fiestas/
     - assets/imagenes/cuadro_vacaciones/
     - assets/imagenes/documentacion/
+    - assets/imagenes/turnos/
     - assets/pdfs/
     - assets/icono.png

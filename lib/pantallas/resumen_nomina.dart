@@ -8,7 +8,9 @@ class ResumenNomina extends StatelessWidget {
   final Map<int, String> diasSeleccionados;
   final double antiguedad;
   final double irpf;
-  final int festivosTrabajados; // <-- Nuevo dato
+  final int festivosTrabajados;
+  final bool tiene60OMas;
+  final bool anadirBolsaVacaciones;
   final String mes;
 
   const ResumenNomina({
@@ -18,6 +20,8 @@ class ResumenNomina extends StatelessWidget {
     this.antiguedad = 0,
     this.irpf = 0,
     this.festivosTrabajados = 0,
+    this.tiene60OMas = false,
+    this.anadirBolsaVacaciones = false,
   });
 
   @override
@@ -73,7 +77,10 @@ class ResumenNomina extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                obtenerTurno(turno)?.codigoVisible ?? turno,
+                                turno.startsWith('R')
+                                    ? obtenerTurno(turno)?.descripcion ?? turno
+                                    : obtenerTurno(turno)?.codigoVisible ??
+                                          turno,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -116,11 +123,35 @@ class ResumenNomina extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+
+                  const SizedBox(height: 10),
+
+                  // ¿Tienes 60 años o más?
+                  Text(
+                    "¿Tienes 60 años o más? "
+                    "${tiene60OMas ? "SÍ" : "NO"}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Añadir bolsa de vacaciones
+                  Text(
+                    "Añadir bolsa de vacaciones: "
+                    "${anadirBolsaVacaciones ? "SÍ" : "NO"}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
 
-            // 🔽 BOTÓN CALCULAR
+            // BOTÓN CALCULAR
             Padding(
               padding: const EdgeInsets.all(16),
               child: SizedBox(
@@ -141,8 +172,9 @@ class ResumenNomina extends StatelessWidget {
                           diasSeleccionados: diasSeleccionados,
                           antiguedad: antiguedad,
                           irpf: irpf,
-                          festivosTrabajados:
-                              festivosTrabajados, // <-- Pasamos el dato
+                          festivosTrabajados: festivosTrabajados,
+                          tiene60OMas: tiene60OMas,
+                          anadirBolsaVacaciones: anadirBolsaVacaciones,
                           mes: mes,
                         ),
                       ),

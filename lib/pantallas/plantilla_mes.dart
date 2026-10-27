@@ -33,6 +33,7 @@ class _PlantillaMesState extends State<PlantillaMes> {
   late final List<Turno> turnosLaborablesList;
   late final List<Turno> turnosSabadosList;
   late final List<Turno> turnosDomingosList;
+  late final List<Turno> turnosRetenList;
 
   @override
   void initState() {
@@ -50,6 +51,8 @@ class _PlantillaMesState extends State<PlantillaMes> {
 
     turnosDomingosList = turnosDomingos.values.toList()
       ..sort((a, b) => a.codigo.compareTo(b.codigo));
+
+    turnosRetenList = turnosReten.values.toList();
   }
 
   // =============================
@@ -86,6 +89,8 @@ class _PlantillaMesState extends State<PlantillaMes> {
         turnos = turnosSabadosList;
       } else if (resultado == "DOMINGOS") {
         turnos = turnosDomingosList;
+      } else if (resultado == "RETEN") {
+        turnos = turnosRetenList;
       }
 
       String? turnoSeleccionado = await _seleccionarTurno(turnos);
@@ -229,8 +234,11 @@ class _PlantillaMesState extends State<PlantillaMes> {
                                 ? (diasMarcados.isNotEmpty
                                       ? "Aplicar selección"
                                       : "Selecciona turno")
-                                : obtenerTurno(valorDia)?.codigoVisible ??
-                                      valorDia,
+                                : (valorDia.startsWith('R')
+                                      ? obtenerTurno(valorDia)?.descripcion ??
+                                            valorDia
+                                      : obtenerTurno(valorDia)?.codigoVisible ??
+                                            valorDia),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
@@ -269,9 +277,14 @@ class _PlantillaMesState extends State<PlantillaMes> {
               title: const Text("SÁBADOS"),
               onTap: () => Navigator.pop(context, "SABADOS"),
             ),
+
             ListTile(
               title: const Text("DOMINGOS Y FESTIVOS"),
               onTap: () => Navigator.pop(context, "DOMINGOS"),
+            ),
+            ListTile(
+              title: const Text("TURNOS RETEN"),
+              onTap: () => Navigator.pop(context, "RETEN"),
             ),
             ListTile(
               title: const Text("FIESTA"),
@@ -298,7 +311,11 @@ class _PlantillaMesState extends State<PlantillaMes> {
             itemCount: turnos.length,
             itemBuilder: (context, index) {
               return ListTile(
-                title: Text(turnos[index].codigoVisible),
+                title: Text(
+                  turnos[index].codigo.startsWith('R')
+                      ? turnos[index].descripcion
+                      : turnos[index].codigoVisible,
+                ),
                 onTap: () => Navigator.pop(context, turnos[index].codigo),
               );
             },

@@ -84,6 +84,8 @@ const Map<String, ConceptoNomina> conceptosNomina = {
     precio: 10.57,
   ),
 
+  "PRET": ConceptoNomina(clave: "PRET", nombre: "Plus Retén", precio: 3.97),
+
   "FESTIVOS": ConceptoNomina(
     clave: "FESTIVOS",
     nombre: "Festivos Oficiales Trabajados",

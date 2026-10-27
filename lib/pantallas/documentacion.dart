@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'cuadro_turnos_escogida.dart';
 import 'bkb.dart';
-import 'tablasalarial.dart';
+import 'convenio.dart';
+import 'tablas_salariales_26_29.dart';
+import 'tablas_salariales_22_25.dart';
 import '../widgets/fondo_degradado.dart';
 
 class Documentacion extends StatelessWidget {
@@ -64,18 +66,54 @@ class Documentacion extends StatelessWidget {
 
               const Divider(),
 
-              /// TABLA SALARIAL
+              /// TABLAS SALARIALES 2022-2025
               ListTile(
                 leading: const Icon(Icons.article, color: Colors.orange),
                 title: const Text(
-                  "Tabla Salarial 2024-2025",
+                  "Tablas Salariales 2022-2025",
                   style: TextStyle(fontSize: 18),
                 ),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const TablaSalarial(),
+                      builder: (context) => const TablasSalariales22_25(),
+                    ),
+                  );
+                },
+              ),
+
+              const Divider(),
+
+              /// CONVENIO 2026-2029
+              ListTile(
+                leading: const Icon(Icons.article, color: Colors.orange),
+                title: const Text(
+                  "Convenio 2026-2029",
+                  style: TextStyle(fontSize: 18),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Convenio()),
+                  );
+                },
+              ),
+
+              const Divider(),
+
+              /// TABLAS SALARIALES 2026-2029
+              ListTile(
+                leading: const Icon(Icons.article, color: Colors.orange),
+                title: const Text(
+                  "Tablas Salariales 2026-2029",
+                  style: TextStyle(fontSize: 18),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TablasSalariales26_29(),
                     ),
                   );
                 },

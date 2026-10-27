@@ -11,6 +11,11 @@ class NominaDetalle extends StatefulWidget {
   final double antiguedad;
   final double irpf;
   final int festivosTrabajados;
+
+  // Nuevos datos
+  final bool tiene60OMas;
+  final bool anadirBolsaVacaciones;
+
   final String mes;
 
   const NominaDetalle({
@@ -20,6 +25,8 @@ class NominaDetalle extends StatefulWidget {
     required this.irpf,
     required this.mes,
     this.festivosTrabajados = 0,
+    this.tiene60OMas = false,
+    this.anadirBolsaVacaciones = false,
   });
 
   @override
@@ -53,6 +60,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
     // ANTIGÜEDAD
     // =============================
     final importeAntiguedad = _calcularImporteAntiguedad(widget.antiguedad);
+
     if (importeAntiguedad > 0) {
       totalDevengos += importeAntiguedad;
 
@@ -71,6 +79,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
     // =============================
     for (final entry in unidades.entries) {
       final concepto = conceptosNomina[entry.key];
+
       if (concepto == null || concepto.esDeduccion) continue;
 
       final importe = entry.value * concepto.precio;
@@ -91,7 +100,9 @@ class _NominaDetalleState extends State<NominaDetalle> {
     // =============================
     if (widget.festivosTrabajados > 0) {
       final precioFestivo = conceptosNomina["FESTIVOS"]?.precio ?? 0;
+
       final totalFestivo = widget.festivosTrabajados * precioFestivo;
+
       totalDevengos += totalFestivo;
 
       filasDevengos.add(
@@ -104,10 +115,68 @@ class _NominaDetalleState extends State<NominaDetalle> {
       );
     }
 
+    // =====================================================
+    // PREMIO FIDELIDAD VINCULACION
+    // =====================================================
+    if (widget.tiene60OMas) {
+      final premioFidelidad = _calcularPremioFidelidad(widget.antiguedad);
+
+      if (premioFidelidad > 0) {
+        totalDevengos += premioFidelidad;
+
+        filasDevengos.add(
+          _filaDevengo(
+            concepto: "Premio Fidelidad Vinculacion",
+            unidad: "",
+            precio: 0,
+            total: premioFidelidad,
+          ),
+        );
+      }
+    }
+
+    // =====================================================
+    // BOLSA DE VACACIONES
+    // =====================================================
+    if (widget.anadirBolsaVacaciones) {
+      const double bolsaVacaciones = 342.13;
+
+      totalDevengos += bolsaVacaciones;
+
+      filasDevengos.add(
+        _filaDevengo(
+          concepto: "Bolsa de Vacaciones",
+          unidad: "",
+          precio: 0,
+          total: bolsaVacaciones,
+        ),
+      );
+    }
+
+    // =============================
+    // ANTICIPO AL FINAL DE CONCEPTOS
+    // =============================
+    final anticipo = conceptosNomina["ANTICIPO"]?.precio ?? 0;
+
+    if (anticipo > 0) {
+      filasDevengos.add(_etiquetaSeccion("A DEDUCIR"));
+
+      filasDevengos.add(_separadorDerecha());
+
+      filasDevengos.add(
+        _filaDevengo(
+          concepto: "*Anticipos",
+          unidad: "",
+          precio: 0,
+          total: anticipo,
+        ),
+      );
+    }
+
     final totalBruto = totalDevengos;
 
     // =====================================================
-    // 🔵 IRPF (RESTAURADO CON DESGLOSE)
+    // IRPF
     // =====================================================
     double totalIrpf = 0;
 
@@ -132,13 +201,14 @@ class _NominaDetalleState extends State<NominaDetalle> {
         _filaTriple(
           col1: totalBruto.toStringAsFixed(2),
           col2: widget.irpf.toStringAsFixed(2),
-          col3: "-${totalIrpf.toStringAsFixed(2)}",
+          col3: totalIrpf.toStringAsFixed(2),
+          negritaCol3: true,
         ),
       );
     }
 
     // =====================================================
-    // 🟠 SEGURIDAD SOCIAL (DESGLOSE COMPLETO RESTAURADO)
+    // SEGURIDAD SOCIAL
     // =====================================================
     final diasMes = widget.diasSeleccionados.length;
 
@@ -153,11 +223,15 @@ class _NominaDetalleState extends State<NominaDetalle> {
     const double pctFormacion = 0.10;
 
     final contingencias = baseSS * pctContingencias / 100;
+
     final mei = baseSS * pctMei / 100;
+
     final desempleo = baseSS * pctDesempleo / 100;
+
     final formacion = baseSS * pctFormacion / 100;
 
     final totalSS = contingencias + mei + desempleo + formacion;
+
     totalDeducciones += totalSS;
 
     filasDeducciones.add(const SizedBox(height: 16));
@@ -185,7 +259,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
       _filaTriple(
         col1: "Contingencias",
         col2: "${pctContingencias.toStringAsFixed(2)}%",
-        col3: "-${contingencias.toStringAsFixed(2)}",
+        col3: contingencias.toStringAsFixed(2),
       ),
     );
 
@@ -193,7 +267,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
       _filaTriple(
         col1: "MEI",
         col2: "${pctMei.toStringAsFixed(2)}%",
-        col3: "-${mei.toStringAsFixed(2)}",
+        col3: mei.toStringAsFixed(2),
       ),
     );
 
@@ -201,7 +275,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
       _filaTriple(
         col1: "Desempleo",
         col2: "${pctDesempleo.toStringAsFixed(2)}%",
-        col3: "-${desempleo.toStringAsFixed(2)}",
+        col3: desempleo.toStringAsFixed(2),
       ),
     );
 
@@ -209,7 +283,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
       _filaTriple(
         col1: "Formación",
         col2: "${pctFormacion.toStringAsFixed(2)}%",
-        col3: "-${formacion.toStringAsFixed(2)}",
+        col3: formacion.toStringAsFixed(2),
       ),
     );
 
@@ -217,24 +291,21 @@ class _NominaDetalleState extends State<NominaDetalle> {
       _filaTriple(
         col1: "TOTAL SS",
         col2: "",
-        col3: "-${totalSS.toStringAsFixed(2)}",
+        col3: totalSS.toStringAsFixed(2),
         esTitulo: true,
       ),
     );
 
+    // Línea que separa la Seguridad Social del anticipo.
+    filasDeducciones.add(const Divider(thickness: 2));
+
     // =============================
     // ANTICIPO
     // =============================
-    final anticipo = conceptosNomina["ANTICIPO"]?.precio ?? 0;
-    if (anticipo > 0) {
-      totalDeducciones += anticipo;
 
-      filasDeducciones.add(
-        _filaDeduccion(concepto: "Anticipo", detalle: "", importe: anticipo),
-      );
-    }
-
-    final neto = totalBruto - totalDeducciones;
+    // El anticipo no forma parte de TOTAL DEDUCCIONES.
+    // Sin embargo, sí se resta para calcular el líquido.
+    final neto = totalBruto - totalDeducciones - anticipo;
 
     // =============================
     // UI
@@ -255,15 +326,22 @@ class _NominaDetalleState extends State<NominaDetalle> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  _etiquetaSeccion("A ABONAR"),
+                  _separadorDerecha(),
                   _cabeceraDevengos(),
                   ...filasDevengos,
+
                   const Divider(thickness: 2),
+
                   _filaTotal("TOTAL BRUTO", totalBruto),
+
                   const SizedBox(height: 24),
+
                   ...filasDeducciones,
-                  const Divider(thickness: 2),
-                  _filaTotal("TOTAL DEDUCCIONES", totalDeducciones),
-                  _filaTotal("NETO A PERCIBIR", neto),
+
+                  _filaTotal("TOTAL A DEDUCIR", totalDeducciones),
+
+                  _filaTotal("LÍQUIDO A PERCIBIR", neto, destacado: true),
                 ],
               ),
             ),
@@ -343,6 +421,18 @@ class _NominaDetalleState extends State<NominaDetalle> {
   }
 
   // =========================================================
+  // PREMIO FIDELIDAD VINCULACION
+  // =========================================================
+  double _calcularPremioFidelidad(double anos) {
+    if (anos < 15) return 12.54;
+    if (anos < 20) return 19.37;
+    if (anos < 25) return 27.35;
+    if (anos < 30) return 34.19;
+    if (anos < 35) return 39.88;
+    return 46.72;
+  }
+
+  // =========================================================
   // UNIDADES
   // =========================================================
   Map<String, double> _calcularUnidades() {
@@ -350,6 +440,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
 
     void sumar(String clave, double valor) {
       if (valor == 0) return;
+
       resultado[clave] = (resultado[clave] ?? 0) + valor;
     }
 
@@ -357,7 +448,8 @@ class _NominaDetalleState extends State<NominaDetalle> {
       final turno =
           turnosLaborables[codigo] ??
           turnosSabados[codigo] ??
-          turnosDomingos[codigo];
+          turnosDomingos[codigo] ??
+          turnosReten[codigo];
 
       if (turno == null) continue;
 
@@ -373,9 +465,11 @@ class _NominaDetalleState extends State<NominaDetalle> {
 
       sumar("CPER", turno.cPer);
       sumar("DCOT", turno.dCot);
+      sumar("PRET", turno.pRet);
     }
 
     const clavesMinutos = ["HEST", "PTRA", "PNOC", "HADI"];
+
     for (final clave in clavesMinutos) {
       if (resultado.containsKey(clave)) {
         resultado[clave] = resultado[clave]! / 60;
@@ -415,6 +509,7 @@ class _NominaDetalleState extends State<NominaDetalle> {
     required String col2,
     required String col3,
     bool esTitulo = false,
+    bool negritaCol3 = false,
   }) {
     final style = esTitulo
         ? const TextStyle(fontWeight: FontWeight.bold)
@@ -427,8 +522,40 @@ class _NominaDetalleState extends State<NominaDetalle> {
           child: Text(col2, style: style, textAlign: TextAlign.center),
         ),
         Expanded(
-          child: Text(col3, style: style, textAlign: TextAlign.right),
+          child: Text(
+            col3,
+            style: (negritaCol3 || esTitulo)
+                ? const TextStyle(fontWeight: FontWeight.bold)
+                : null,
+            textAlign: TextAlign.right,
+          ),
         ),
+      ],
+    );
+  }
+
+  // =============================
+  // ETIQUETAS A ABONAR / A DEDUCIR
+  // =============================
+  Widget _etiquetaSeccion(String texto) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 2),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          texto,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        ),
+      ),
+    );
+  }
+
+  // Línea horizontal que ocupa la mitad derecha
+  Widget _separadorDerecha() {
+    return Row(
+      children: [
+        const Expanded(child: SizedBox()),
+        const Expanded(child: Divider(thickness: 1, height: 8)),
       ],
     );
   }
@@ -454,8 +581,15 @@ class _NominaDetalleState extends State<NominaDetalle> {
       children: [
         Expanded(flex: 3, child: Text(concepto)),
         Expanded(child: Text(unidad, textAlign: TextAlign.center)),
-        Expanded(child: Text(precio == 0 ? "" : precio.toStringAsFixed(2))),
-        Expanded(child: Text(total.toStringAsFixed(2))),
+        Expanded(
+          child: Text(
+            precio == 0 ? "" : precio.toStringAsFixed(2),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Expanded(
+          child: Text(total.toStringAsFixed(2), textAlign: TextAlign.center),
+        ),
       ],
     );
   }
@@ -479,24 +613,33 @@ class _NominaDetalleState extends State<NominaDetalle> {
     );
   }
 
-  Widget _filaTotal(String texto, double importe) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: Text(
-            texto,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+  Widget _filaTotal(String texto, double importe, {bool destacado = false}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: destacado ? 6 : 0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              texto,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: destacado ? 16 : 14,
+              ),
+            ),
           ),
-        ),
-        Expanded(
-          child: Text(
-            importe.toStringAsFixed(2),
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          Expanded(
+            child: Text(
+              importe.toStringAsFixed(2),
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: destacado ? 18 : 14,
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

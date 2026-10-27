@@ -50,7 +50,7 @@ class Informacion extends StatelessWidget {
                   ),
 
                   SizedBox(height: 4),
-                  Text("Versión 2.0", style: TextStyle(color: Colors.grey)),
+                  Text("Versión 2.4", style: TextStyle(color: Colors.black)),
                 ],
               ),
 
@@ -101,7 +101,7 @@ class Informacion extends StatelessWidget {
               const Center(
                 child: Text(
                   "Gracias por usar la aplicación 😊",
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             ],
